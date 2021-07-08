@@ -46,7 +46,7 @@ public class MemberRepoTests {
     @Test
     public void testLoad(){
 
-        String email = "user10@aaa.com";
+        String email = "user80@aaa.com";
 
         Optional<Member> result = memberRepository.findByEmail(email);
 

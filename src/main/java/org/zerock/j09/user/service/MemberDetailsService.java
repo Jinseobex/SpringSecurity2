@@ -29,6 +29,11 @@ public class MemberDetailsService implements UserDetailsService {
 
         Optional<Member> op = memberRepository.findByEmail(username);
 
+        log.info("--------------------RESULT ------------------------");
+
+        log.info(op);
+
+
         if(op.isPresent()){
 
             Member member = op.get();

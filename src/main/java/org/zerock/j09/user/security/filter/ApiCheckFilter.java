@@ -1,6 +1,5 @@
 package org.zerock.j09.user.security.filter;
 
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.zerock.j09.user.dto.MemberDTO;
 import org.zerock.j09.user.security.util.JWTUtil;
 import org.zerock.j09.user.service.MemberDetailsService;
 

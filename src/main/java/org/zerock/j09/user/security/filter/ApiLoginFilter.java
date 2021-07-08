@@ -2,6 +2,7 @@ package org.zerock.j09.user.security.filter;
 
 import com.google.gson.Gson;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,7 +10,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.zerock.j09.user.dto.LoginDTO;
 import org.zerock.j09.user.dto.MemberDTO;
+import org.zerock.j09.user.entity.MemberRefreshToken;
+import org.zerock.j09.user.repository.MemberRefreshTokenRepository;
 import org.zerock.j09.user.security.util.JWTUtil;
 
 import javax.servlet.FilterChain;
@@ -23,29 +27,42 @@ import java.util.Map;
 
 @Log4j2
 public class ApiLoginFilter extends AbstractAuthenticationProcessingFilter {
-                                        // 로그인 URL
+
+    @Autowired
+    private MemberRefreshTokenRepository memberRefreshTokenRepository;
+
     public ApiLoginFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager) {
         super(defaultFilterProcessesUrl, authenticationManager);
     }
 
-    @Override                                                                                               // 로그인 실패 시 인증예외 발생
+    @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException, IOException, ServletException {
-        // 로그인 시도 시 여기로 넘어옴
-        log.info("===========================================");
-        log.info("===============attemp login================");
-        log.info("===========================================");
 
-        String email = request.getParameter("email");
-        String pw = request.getParameter("pw");
 
-        log.info("email: "+ email + " pw: " + pw);
 
-        //인증매니저
+
+
+
+
+        log.info("=================================");
+        log.info("===============attempt login==================");
+        log.info("=================================");
+
+        String jsonStr = request.getReader().readLine();
+
+        log.info("JSON STRING: " + jsonStr);
+
+        Gson gson = new Gson();
+
+        LoginDTO dto = gson.fromJson(jsonStr, LoginDTO.class);
+
+
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(email,pw);
+                new UsernamePasswordAuthenticationToken(dto.getEmail(),dto.getPw());
 
-        Authentication authResult = this.getAuthenticationManager().authenticate(authenticationToken);
-        //인가 매니저에게 인가를 던져준다. 요렇게 하면 인가정보가 나온다       인증작업 실행
+        Authentication authResult =  this.getAuthenticationManager().authenticate(authenticationToken);
+
+        log.info(this.getAuthenticationManager().getClass().getName());
 
         log.info(authResult);
 
@@ -71,7 +88,16 @@ public class ApiLoginFilter extends AbstractAuthenticationProcessingFilter {
         try {
             String jwt = new JWTUtil().generateToken(email);
 
+            String refreshStr = "" + System.currentTimeMillis();
+
             map.put("TOKEN",jwt);
+            map.put("REFRESH", refreshStr);
+
+            long expireDate = System.currentTimeMillis() + (1000*60*60*30);
+
+            MemberRefreshToken refreshToken = MemberRefreshToken.builder().email(email).refreshStr(refreshStr).expireDate(expireDate).build();
+
+            memberRefreshTokenRepository.save(refreshToken);
 
             Gson gson = new Gson();
             String str = gson.toJson(map);
@@ -84,11 +110,6 @@ public class ApiLoginFilter extends AbstractAuthenticationProcessingFilter {
 
     }
 }
-
-
-
-
-
 
 
 
